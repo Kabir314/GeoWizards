@@ -1,3 +1,8 @@
+# Image files
+*.svg
+*.png
+
+
 # Data Files
 Data/
 
