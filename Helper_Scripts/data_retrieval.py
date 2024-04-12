@@ -2,35 +2,44 @@ from census import Census
 from us import states
 import pandas as pd
 import geopandas as gpd
+from dotenv import dotenv_values
+import os
+
+env_path = f"{os.path.dirname(os.getcwd())}\\.env"
+config = dotenv_values(env_path)
 
 class data:
     def __init__(
             self, 
             data_base_path,
-            census_api_key,
-            county_code):
+            county_code,
+            census_api_key = config["census_api_key"],
+            here_api_key = config["here_api_key"]):
         self.data_base_path = data_base_path
         self.census_api_key = census_api_key
+        self.here_api_key = here_api_key
         self.county_code = county_code
-        self._set_tract_df()
-        self._set_routes_df()
-        self._set_commute_df()
-        self._set_tract_route_stats()
+        # self._set_tract_df()
+        # self._set_routes_df()
+        # self._set_commute_df()
+        # self._set_tract_route_stats()
+        self._set_downtown_distance_stats()
 
     def __str__(self):
         return f"A data class with the data base path of {self.data_base_path} \
-            and a census api key of {self.census_api_key}"
+            and a census api key of {self.census_api_key} \
+            and a here.com api key of {self.here_api_key}"
 
-    #A function to return a 
+    #A function to return a dc of census tracts
     def _set_tract_df(self):
-        path = f"{self.data_base_path}\\tl_2021_06_tract\\tl_2021_06_tract.shp"
+        path = f"{self.data_base_path}\\california_tracts\\tl_2021_06_tract.shp"
         tract_df = gpd.read_file(path).to_crs("EPSG:4326")
         #Filter to sd county census tracts
         tract_df = tract_df.loc[tract_df["COUNTYFP"]== self.county_code,]
         self.tract_df = tract_df
     
     def _set_routes_df(self):
-        path = f"{self.data_base_path}\\transit_routes_datasd\\transit_routes_datasd.shp"
+        path = f"{self.data_base_path}\\transit_routes\\transit_routes_datasd.shp"
         #Converting routes to WGS84
         routes_df = gpd.read_file(path).to_crs("EPSG:4326")
         self.routes_df = routes_df

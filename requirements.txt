@@ -8,3 +8,5 @@ matplotlib
 rioxarray
 contextily
 shapely
+requests
+python-dotenv

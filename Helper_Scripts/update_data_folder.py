@@ -4,8 +4,13 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import pandas as pd
 from us import states
+from dotenv import dotenv_values
+import os
 
-API_KEY = '9e94761d2b2fb214de8b88bdaeccc47b8edded35'
+env_path = f"{os.path.dirname(os.getcwd())}\\.env"
+config = dotenv_values(env_path)
+API_KEY = config["census_api_key"]
+
 #You can request an API key from https://api.census.gov/data/key_signup.html
 c = Census(API_KEY)
 
