@@ -5,7 +5,7 @@ Again the Data folder is already in git ignore and the Readme has been added bef
 
 1. california_tracts - Contains .shp file with polygons for all the census tracts in California. https://www.census.gov/cgi-bin/geo/shapefiles/index.php?year=2021&layergroup=Census+Tracts
 
-2. HRPD - High resolution population density, contains .tif file with 30x30 population raster for huge bottom quadrant of america. https://data.humdata.org/dataset/united-states-high-resolution-population-density-maps-demographic-estimates
+2. HRPD - High resolution population density, contains .tif file with 30x30 population raster for huge bottom quadrant of america. Also contains saved .shp file after processing the raster data. https://data.humdata.org/dataset/united-states-high-resolution-population-density-maps-demographic-estimates
 
 3. transit_stops/_routes - Contains .shp file for all the MTS Stop points and Route lines. https://data.sandiego.gov/datasets/transit-routes/
 
