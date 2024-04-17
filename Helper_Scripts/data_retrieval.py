@@ -19,10 +19,10 @@ class data:
         self.census_api_key = census_api_key
         self.here_api_key = here_api_key
         self.county_code = county_code
-        # self._set_tract_df()
-        # self._set_routes_df()
-        # self._set_commute_df()
-        # self._set_tract_route_stats()
+        self._set_tract_df()
+        self._set_routes_df()
+        self._set_commute_df()
+        self._set_tract_route_stats()
         self._set_downtown_distance_stats()
 
     def __str__(self):
