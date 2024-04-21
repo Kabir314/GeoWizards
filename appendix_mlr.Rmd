@@ -1,0 +1,13 @@
+```{r}
+library(olsrr)
+library(readr)
+data_transit = read_csv("./Data/r_preprocessed_data.csv")
+head(data_transit)
+dim(data_transit)
+
+hist(
+  data_transit$`Mean Time`,
+  main = "Histogram of Mean Commute Time",
+  xlab = "Mean Commute Time")
+
+```
