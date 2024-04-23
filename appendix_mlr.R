@@ -31,9 +31,10 @@ hist(
   xlab = "Log(Mean Commute Time)",
   col = 'blue')
 
-#ggpairs(
-#  data_transit
-#)
+ggpairs(
+  data_transit
+)
+
 #After looking through the ggpairs plots,
 #we are going to further investigate the relationship between mean_time and
 #total route count
@@ -138,7 +139,7 @@ plot(best_subsets_fit)
 summary(best_subsets_fit)
 
 #QQ-Plot appears to depart from normality at the end.
-#We are going to try to log-transform the mean_time to better predict values at the tails
+#We are going to try to log-transform mean_time to better predict values at the tails
 
 init_log_fit = lm(
   log(mean_time) ~ 
