@@ -1,0 +1,258 @@
+library(olsrr)
+library(readr)
+library(GGally)
+library(leaps)
+library(sjPlot)
+#For vif
+library(car)
+
+data_transit = read_csv("r_preprocessed_data.csv", col_names = TRUE)
+
+#Removing tract column
+data_transit$tract = NULL
+#Removing row number column
+data_transit$...1 = NULL
+#Population is a linear dependency to male and female population
+data_transit$population = NULL
+
+head(data_transit)
+dim(data_transit)
+
+par(mfrow = c(2,2))
+hist(
+  data_transit$mean_time,
+  main = "Histogram of Mean Commute Time",
+  xlab = "Mean Commute Time",
+  col = 'blue')
+
+hist(
+  log(data_transit$mean_time),
+  main = "Histogram of Log(Mean Commute Time)",
+  xlab = "Log(Mean Commute Time)",
+  col = 'blue')
+
+#ggpairs(
+#  data_transit
+#)
+#After looking through the ggpairs plots,
+#we are going to further investigate the relationship between mean_time and
+#total route count
+#stop_count
+#total route length
+
+#Inital Visualizations
+par(mfrow = c(2,2))
+plot(
+  data_transit$total_route_count,
+  data_transit$mean_time,
+  main = "Route Count vs Mean Commute Time",
+  xlab = "Route Count",
+  ylab = "Mean Commute Time",
+  col = 'blue')
+
+plot(
+  data_transit$stop_count,
+  data_transit$mean_time,
+  main = "Stop Count vs Mean Commute Time",
+  xlab = "Stop Count",
+  ylab = "Mean Commute Time",
+  col = 'blue')
+
+plot(
+  data_transit$total_route_length_m,
+  data_transit$mean_time,
+  main = "Route Length vs Mean Commute Time",
+  xlab = "Route Length",
+  ylab = "Mean Commute Time",
+  col = 'blue')
+
+#There does not appear to be strong linear correlations with any of our primary predictors of interest
+
+plot(
+  data_transit$population_in_labor_force,
+  data_transit$mean_time,
+  main = "Population in Labor Force vs Mean Commute Time",
+  xlab = "Population in Labor Force",
+  ylab = "Mean Commute Time",
+  col = 'blue')
+
+#A log transform on population in labor force appears appropriate
+plot(
+  log(data_transit$population_in_labor_force),
+  data_transit$mean_time,
+  main = "Log(Population in Labor Force) vs Mean Commute Time",
+  xlab = "Population in Labor Force",
+  ylab = "Mean Commute Time")
+
+init_fit = lm(
+  mean_time ~ 
+    distance_from_commute_hub_1 +
+    stop_count +
+    tract_area_m +
+    total_route_length_m +
+    total_route_count +
+    population_with_income_to_poverty_level_under_0.50 +
+    population_with_income_to_poverty_level_between_0.50_and_0.99 +
+    log(population_in_labor_force) +
+    `population_with_rent_>=50_percent_of_household_income` +
+    male_population +
+    female_population +
+    population_that_utilizes_public_transportation,
+  data = data_transit
+)
+summary(init_fit)
+
+best_subsets_var_selection = 
+  regsubsets(
+    x = model.matrix(init_fit),
+    y = data_transit$mean_time,
+    nbest = 10,
+    nvmax = ncol(model.matrix(init_fit)),
+    really.big = FALSE,
+    intercept = FALSE,
+    all.best = TRUE
+  )
+
+#Mallows CP as criterion
+plot(best_subsets_var_selection, scale = 'Cp')
+
+best_subs_summary = summary(best_subsets_var_selection)
+
+print(which.min(best_subs_summary$cp))
+print(coef(best_subsets_var_selection, 81))
+
+best_subsets_fit = lm(
+  mean_time ~ 
+    distance_from_commute_hub_1 +
+    tract_area_m +
+    total_route_length_m +
+    total_route_count +
+    population_with_income_to_poverty_level_between_0.50_and_0.99 +
+    log(population_in_labor_force) +
+    `population_with_rent_>=50_percent_of_household_income` +
+    population_that_utilizes_public_transportation,
+  data = data_transit
+)
+par(mfrow = c(2,2))
+plot(best_subsets_fit)
+summary(best_subsets_fit)
+
+#QQ-Plot appears to depart from normality at the end.
+#We are going to try to log-transform the mean_time to better predict values at the tails
+
+init_log_fit = lm(
+  log(mean_time) ~ 
+    distance_from_commute_hub_1 +
+    stop_count +
+    tract_area_m +
+    total_route_length_m +
+    total_route_count +
+    population_with_income_to_poverty_level_under_0.50 +
+    population_with_income_to_poverty_level_between_0.50_and_0.99 +
+    log(population_in_labor_force) +
+    `population_with_rent_>=50_percent_of_household_income` +
+    male_population +
+    female_population +
+    population_that_utilizes_public_transportation,
+  data = data_transit
+)
+summary(init_log_fit)
+
+best_subsets_var_selection = 
+  regsubsets(
+    x = model.matrix(init_log_fit),
+    y = log(data_transit$mean_time),
+    nbest = 10,
+    nvmax = ncol(model.matrix(init_log_fit)),
+    really.big = FALSE,
+    intercept = FALSE,
+    all.best = TRUE
+  )
+
+#Mallows CP as criterion
+plot(best_subsets_var_selection, scale = 'Cp')
+
+best_subs_summary = summary(best_subsets_var_selection)
+
+print(which.min(best_subs_summary$cp))
+print(coef(best_subsets_var_selection, 71))
+
+log_best_subsets_fit = lm(
+  log(mean_time) ~ 
+    distance_from_commute_hub_1 +
+    tract_area_m +
+    total_route_count +
+    population_with_income_to_poverty_level_between_0.50_and_0.99 +
+    log(population_in_labor_force) +
+    `population_with_rent_>=50_percent_of_household_income` +
+    population_that_utilizes_public_transportation,
+  data = data_transit
+)
+
+par(mfrow = c(2,2))
+plot(log_best_subsets_fit)
+summary(log_best_subsets_fit)
+print(vif(log_best_subsets_fit))
+
+par(mfrow = c(1,1))
+ols_plot_resid_lev(log_best_subsets_fit)
+
+#We are excluding point 713 and 714 as it has leverage and is a slight outlier
+#We want to see if our results change significantly after excluding this point
+log_best_subsets_fit_no_outliers = lm(
+  log(mean_time) ~ 
+    distance_from_commute_hub_1 +
+    tract_area_m +
+    total_route_count +
+    population_with_income_to_poverty_level_between_0.50_and_0.99 +
+    log(population_in_labor_force) +
+    `population_with_rent_>=50_percent_of_household_income` +
+    population_that_utilizes_public_transportation,
+  data = data_transit[-c(713, 714),]
+)
+
+par(mfrow = c(2,2))
+plot(log_best_subsets_fit_no_outliers)
+summary(log_best_subsets_fit_no_outliers)
+ols_plot_resid_lev(log_best_subsets_fit_no_outliers)
+
+#Tract area is no longer significant without these two points
+data_transit[c(713, 714),]
+#These two points have large tract areas and are tracts 21001 and 21002
+#21001 is huge compared to other tracts and contains Anza-Borrego
+#21002 is just north of 21001 with similar attributes
+
+par(mfrow = c(1,1))
+plot(
+  data_transit$tract_area_m,
+  log(data_transit$mean_time),
+  main = "Tract Area vs Log(Mean Commute Time)",
+  xlab = "Treat",
+  ylab = "Mean Commute Time")
+
+plot(
+  log(data_transit$tract_area_m),
+  log(data_transit$mean_time),
+  main = "Tract Area vs Log(Mean Commute Time)",
+  xlab = "Treat",
+  ylab = "Mean Commute Time")
+
+log_final_fit = lm(
+  log(mean_time) ~ 
+    distance_from_commute_hub_1 +
+    log(tract_area_m) +
+    total_route_count +
+    population_with_income_to_poverty_level_between_0.50_and_0.99 +
+    log(population_in_labor_force) +
+    `population_with_rent_>=50_percent_of_household_income` +
+    population_that_utilizes_public_transportation,
+  data = data_transit
+)
+par(mfrow = c(2,2))
+plot(log_final_fit, color = 'blue')
+summary(log_final_fit)
+#Our log transform on tract area removed outliers with leverage >= 0.1
+ols_plot_resid_lev(log_final_fit)
+print(vif(log_final_fit))
+
+tab_model(log_final_fit)
