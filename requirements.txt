@@ -10,3 +10,4 @@ contextily
 shapely
 requests
 python-dotenv
+seaborn
